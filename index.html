@@ -334,66 +334,119 @@
       align-items: flex-end;
     }
 
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 2px;
+    /* ── Hex grid ──────────────────────────────────────────────── */
+    --hex-w: 200px;
+    --hex-h: 231px; /* = hex-w * 2/√3 for a regular pointy-top hex */
+    --hex-gap: 12px;
+    --hex-offset: 106px; /* = (hex-w + hex-gap) / 2 */
+    --hex-overlap: -58px; /* = -(hex-h * 0.25) */
+
+    .hex-grid-wrap { overflow: hidden; }
+
+    .hex-grid {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: calc(4 * var(--hex-w) + 3 * var(--hex-gap) + var(--hex-offset));
+      margin: 0 auto;
     }
 
-    .service-card {
-      background: var(--dark-2);
-      padding: 36px 28px;
-      border-top: 3px solid transparent;
-      transition: background var(--trans), border-color var(--trans), transform var(--trans);
-      cursor: default;
-      position: relative;
-      overflow: hidden;
+    .hex-row {
+      display: flex;
+      gap: var(--hex-gap);
     }
-    .service-card::after {
+    .hex-row:first-child {
+      /* No horizontal shift — row 2 shifts right by hex-offset */
+    }
+    .hex-row:nth-child(2) {
+      margin-top: var(--hex-overlap);
+      padding-left: var(--hex-offset);
+    }
+
+    .hex-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: var(--hex-w);
+      flex-shrink: 0;
+    }
+
+    .hex-shell {
+      position: relative;
+      width: var(--hex-w);
+      height: var(--hex-h);
+      cursor: default;
+      transition: transform var(--trans), filter var(--trans);
+    }
+    .hex-shell:hover {
+      transform: translateY(-5px);
+      filter: drop-shadow(0 0 10px rgba(232,160,32,.55));
+    }
+
+    /* Gold border: outer layer */
+    .hex-shell::before {
       content: '';
       position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 0;
-      background: linear-gradient(to top, rgba(232,160,32,.06), transparent);
-      transition: height var(--trans);
+      inset: 0;
+      background: rgba(232,160,32,.35);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      transition: background var(--trans);
     }
-    .service-card:hover {
-      background: var(--dark-3);
-      border-top-color: var(--gold);
-      transform: translateY(-3px);
-    }
-    .service-card:hover::after { height: 100%; }
+    .hex-shell:hover::before { background: var(--gold); }
 
-    .sc-icon {
-      width: 52px; height: 52px;
-      border-radius: 8px;
-      background: rgba(232,160,32,.1);
-      border: 1px solid rgba(232,160,32,.2);
+    /* Dark face: inner layer */
+    .hex-face {
+      position: absolute;
+      inset: 3px;
+      background: var(--dark-2);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 20% 16%;
+      transition: background var(--trans);
+      overflow: hidden;
+    }
+    .hex-shell:hover .hex-face { background: var(--dark-3); }
+
+    /* Description overlay appears on hover */
+    .hex-face::after {
+      content: attr(data-desc);
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,10,.88);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
-      color: var(--gold);
-      margin-bottom: 20px;
-      transition: background var(--trans);
+      text-align: center;
+      font-size: .72rem;
+      color: var(--gray-lt);
+      line-height: 1.5;
+      padding: 30% 16%;
+      opacity: 0;
+      transition: opacity var(--trans);
     }
-    .service-card:hover .sc-icon {
-      background: rgba(232,160,32,.2);
+    .hex-shell:hover .hex-face::after { opacity: 1; }
+
+    .hex-icon {
+      font-size: 1.8rem;
+      color: var(--gold);
+      margin-bottom: 10px;
+      line-height: 1;
     }
 
-    .sc-name {
+    .hex-name {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.15rem;
+      font-size: .82rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 8px;
+      letter-spacing: .06em;
       color: var(--white);
-    }
-    .sc-desc {
-      font-size: .85rem;
-      color: var(--gray);
-      line-height: 1.6;
+      text-align: center;
+      line-height: 1.2;
     }
 
     /* ── WHY US ─────────────────────────────────────────────────── */
@@ -415,11 +468,19 @@
       border-radius: 8px;
       overflow: hidden;
       aspect-ratio: 4/3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 7rem;
       position: relative;
+    }
+    .why-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: brightness(.85) saturate(.9);
+      transition: filter var(--trans), transform .5s ease;
+    }
+    .why-img-box:hover img {
+      filter: brightness(.95) saturate(1.1);
+      transform: scale(1.03);
     }
     .why-img-box::before {
       content: '';
@@ -922,7 +983,7 @@
 
     /* ── Responsive ──────────────────────────────────────────────── */
     @media (max-width: 1024px) {
-      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .hex-grid { --hex-w:160px; --hex-h:185px; --hex-gap:10px; --hex-offset:85px; --hex-overlap:-46px; width:calc(4*160px + 3*10px + 85px); }
       .process-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
       .process-grid::before { display: none; }
       .footer-top { grid-template-columns: 1fr 1fr; }
@@ -950,7 +1011,9 @@
       .hero-logo-wrap { display: none; }
       .services-header { grid-template-columns: 1fr; }
       .services-header .right { justify-content: flex-start; }
-      .services-grid { grid-template-columns: 1fr; gap: 2px; }
+      .hex-grid { --hex-w:140px; --hex-h:162px; --hex-gap:8px; --hex-offset:74px; --hex-overlap:-40px; width:calc(4*140px + 3*8px + 74px); }
+      .hex-icon { font-size:1.3rem; }
+      .hex-name { font-size:.7rem; }
       .why-inner { grid-template-columns: 1fr; }
       .why-visual { display: none; }
       .serve-inner { grid-template-columns: 1fr; }
@@ -1049,46 +1112,78 @@
         </div>
       </div>
 
-      <div class="services-grid">
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-tractor"></i></div>
-          <div class="sc-name">Grading</div>
-          <p class="sc-desc">Precise land grading for proper drainage, foundation prep, and a level base — done right the first time.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-water"></i></div>
-          <div class="sc-name">Drainage</div>
-          <p class="sc-desc">French drains, swales, culverts, and drainage systems engineered to keep water moving away from your structure.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-building"></i></div>
-          <div class="sc-name">Footers</div>
-          <p class="sc-desc">Footer excavation dug to spec for residential and commercial foundations — accurate depth, clean walls.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-ruler-combined"></i></div>
-          <div class="sc-name">Site Prep</div>
-          <p class="sc-desc">Full site preparation from raw ground to construction-ready — clearing, grading, and final grade.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-network-wired"></i></div>
-          <div class="sc-name">Utility Trenching</div>
-          <p class="sc-desc">Clean, precise trenching for water, electric, gas, sewer, and communication lines.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-tree"></i></div>
-          <div class="sc-name">Land Clearing</div>
-          <p class="sc-desc">Trees, brush, stumps, and overgrowth removed efficiently — leaving a clean slate ready for your project.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-house-crack"></i></div>
-          <div class="sc-name">Foundation &amp; Basement Digs</div>
-          <p class="sc-desc">Excavation for full basements and foundations dug to engineer specs with clean, stable walls.</p>
-        </div>
-        <div class="service-card fade-up">
-          <div class="sc-icon"><i class="fas fa-hammer"></i></div>
-          <div class="sc-name">Demolition</div>
-          <p class="sc-desc">Structure teardowns, concrete removal, old foundation busting — cleared and hauled away cleanly.</p>
+      <div class="hex-grid-wrap fade-up">
+        <div class="hex-grid">
+          <!-- Row 1 -->
+          <div class="hex-row">
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Precise grading for drainage, foundation prep, and a level base — done right the first time.">
+                  <i class="hex-icon fas fa-tractor"></i>
+                  <div class="hex-name">Grading</div>
+                </div>
+              </div>
+            </div>
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="French drains, swales, culverts, and drainage systems to keep water moving away from your structure.">
+                  <i class="hex-icon fas fa-water"></i>
+                  <div class="hex-name">Drainage</div>
+                </div>
+              </div>
+            </div>
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Footer excavation dug to spec for residential and commercial foundations — accurate depth, clean walls.">
+                  <i class="hex-icon fas fa-building"></i>
+                  <div class="hex-name">Footers</div>
+                </div>
+              </div>
+            </div>
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Full site preparation from raw ground to construction-ready — clearing, grading, and final grade.">
+                  <i class="hex-icon fas fa-ruler-combined"></i>
+                  <div class="hex-name">Site Prep</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row 2 (honeycomb offset) -->
+          <div class="hex-row">
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Clean, precise trenching for water, electric, gas, sewer, and communication lines.">
+                  <i class="hex-icon fas fa-network-wired"></i>
+                  <div class="hex-name">Utility Trenching</div>
+                </div>
+              </div>
+            </div>
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Trees, brush, stumps, and overgrowth removed efficiently — leaving a clean slate for your project.">
+                  <i class="hex-icon fas fa-tree"></i>
+                  <div class="hex-name">Land Clearing</div>
+                </div>
+              </div>
+            </div>
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Excavation for full basements and foundations dug to engineer specs with clean, stable walls.">
+                  <i class="hex-icon fas fa-house-crack"></i>
+                  <div class="hex-name">Foundation &amp; Basement Digs</div>
+                </div>
+              </div>
+            </div>
+            <div class="hex-unit">
+              <div class="hex-shell">
+                <div class="hex-face" data-desc="Structure teardowns, concrete removal, old foundation busting — cleared and hauled away cleanly.">
+                  <i class="hex-icon fas fa-hammer"></i>
+                  <div class="hex-name">Demolition</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1099,7 +1194,9 @@
     <div class="container">
       <div class="why-inner">
         <div class="why-visual fade-up">
-          <div class="why-img-box">🚜</div>
+          <div class="why-img-box">
+            <img src="img/excavator.jpg" alt="Excavator on job site" />
+          </div>
           <div class="why-accent">
             <strong>100%</strong>
             <span>Job Site<br>Accountability</span>
